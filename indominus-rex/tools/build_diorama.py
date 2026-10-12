@@ -156,7 +156,7 @@ def main(out):
     M = anky_xform()
     # ---------- anky
     ga, spikes = build_anky()
-    va, fa = ga.polygonize(120000)
+    va, fa = ga.polygonize(100000)
     na = ga.normals(va)
     # osteoderm mask: nearest primitive is a spike
     body_prims = [p for p in ga.prims if p.op == 'add' and p not in spikes]
@@ -239,7 +239,7 @@ def main(out):
 
     # ---------- moss cushions on rocks, terrain and spilling over the rim
     moss = Group('moss', 0.016, noise=wave_noise(13, 0.012, [0.03, 0.06, 0.12, 0.25]))
-    vr, fr = rocks.polygonize(60000)
+    vr, fr = rocks.polygonize(44000)
     nr = rocks.normals(vr)
     tops = vr[nr[:, 1] > 0.7]
 
@@ -272,9 +272,9 @@ def main(out):
             y = h(np.array([x]), np.array([z]))[0]
             cluster(np.array([x, y - 0.05, z]), 5, 0.15, 0.2, 0.55)
 
-    vt, ft = terrain.polygonize(120000)
+    vt, ft = terrain.polygonize(70000)
     nt = terrain.normals(vt)
-    vm, fm = moss.polygonize(60000)
+    vm, fm = moss.polygonize(44000)
     nm = moss.normals(vm)
     print(f'terrain {len(vt)} rocks {len(vr)} moss {len(vm)} ({time.time() - t0:.1f}s)')
 

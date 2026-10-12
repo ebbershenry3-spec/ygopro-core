@@ -11,6 +11,7 @@ import { addScaleRelief } from './sculpted.js';
 import { scaleTextures } from './textures.js';
 import { DEG, lerp, smoother, clamp, seededRandom } from './util.js';
 import { POSES } from './poses.js';
+import { fetchGLB } from './fetchglb.js';
 
 const SCALE = 1 / 15;
 const $ = (id) => document.getElementById(id);
@@ -45,10 +46,10 @@ export async function start({ onProgress } = {}) {
 
   // ---------------- assets
   const progress = { indo: 0, dio: 0 };
-  const report = () => onProgress && onProgress((progress.indo * 11.2 + progress.dio * 7.2) / 18.4);
+  const report = () => onProgress && onProgress((progress.indo * 6.2 + progress.dio * 6.9) / 13.1);
   const [indo, dio] = await Promise.all([
-    loadIndominus('assets/indominus_rex.glb', (e) => { if (e.total) progress.indo = e.loaded / e.total; report(); }),
-    new GLTFLoader().loadAsync('assets/diorama.glb', (e) => { if (e.total) progress.dio = e.loaded / e.total; report(); }),
+    loadIndominus('assets/indominus_rex.glb.b64.txt', (p) => { progress.indo = p; report(); }),
+    fetchGLB('assets/diorama.glb.b64.txt', (p) => { progress.dio = p; report(); }).then((buf) => new GLTFLoader().parseAsync(buf, '')),
   ]);
   const ex = dio.parser.json.asset.extras;
 

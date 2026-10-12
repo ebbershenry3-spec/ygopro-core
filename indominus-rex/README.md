@@ -27,7 +27,7 @@ Bedienung:
 | Pfad | Inhalt |
 | --- | --- |
 | `assets/indominus_rex.glb` | Ausgangsmodell „Indominus Rex – Idle“, JWE2-Rig mit 158 Knochen |
-| `assets/diorama.glb` | Erde, Felsen, Moospolster und toter Ankylosaurus, per SDF modelliert |
+| `assets/*.glb.b64.txt` | Web-Fassungen, die die Seite lädt: JPEG-Texturen, Base64-kodiert, weil das Artifact-Hosting keine `.glb` ausliefert. Die Indominus-Datei ist das Ausgangsmodell, das Diorama enthält Erde, Felsen, Moospolster und den toten Ankylosaurus |
 | `export/indominus_statue_1zu15.glb` | Fertig posierte Statue mit Sockel als eine Datei, etwa 1 m breit, z. B. für Blender |
 | `export/statue_*.png` | Produktfotos |
 | `js/rig.js` | Prozedurales Rig: Knochenrotationen im Kreaturen-Raum, Zwei-Knochen-IK für die Beine |
@@ -37,12 +37,16 @@ Bedienung:
 | `js/statue.js` | Szene, Studio-Licht, Kamera, Maße |
 | `tools/build_diorama.py` | Erzeugt `diorama.glb`: Signed Distance Fields, Marching Cubes, Vertex-Farben mit Umgebungsverdeckung |
 | `tools/sdf.py` | SDF-Bausatz und GLB-Writer |
+| `tools/pack_web.py` | Packt ein GLB für das Web: JPEG-Texturen, Base64-Text |
 
 Diorama neu erzeugen:
 
 ```sh
-pip install numpy scikit-image fast-simplification
-cd tools && python build_diorama.py ../assets
+pip install numpy scikit-image fast-simplification pillow
+cd tools
+python build_diorama.py /tmp
+python pack_web.py /tmp/diorama.glb ../assets/diorama.glb.b64.txt
+python pack_web.py ../assets/indominus_rex.glb ../assets/indominus_rex.glb.b64.txt
 ```
 
 ## Noch nicht fertig

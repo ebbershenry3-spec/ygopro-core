@@ -1,9 +1,10 @@
 // Loads the user's Indominus rex GLB (JWE2 rig) and maps its skeleton to the procedural rig.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { fetchGLB } from './fetchglb.js';
 
 export async function loadIndominus(url, onProgress) {
-  const gltf = await new GLTFLoader().loadAsync(url, onProgress);
+  const gltf = await new GLTFLoader().parseAsync(await fetchGLB(url, onProgress), '');
   const model = gltf.scene;
   const bones = {};
   model.traverse((o) => {
