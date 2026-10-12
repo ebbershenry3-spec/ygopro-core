@@ -1,0 +1,147 @@
+<title>Indominus Rex Statue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  /* Layout: full-bleed WebGL stage; a title block top-left and one control dock along the bottom edge. */
+  :root {
+    --ink: #e8edf6;
+    --muted: #8d99b1;
+    --night: #060910;
+    --panel: rgba(9, 13, 23, 0.78);
+    --line: #22304d;
+    --trim: #2f6bff;      /* the plinth's blue trim */
+    --trim-soft: rgba(47, 107, 255, 0.18);
+    --font-display: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--night); color: var(--ink); font: 14px/1.45 var(--font-ui); overflow: hidden; }
+  #stage { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+
+  .title { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 18px); left: 20px; right: 20px; pointer-events: none; display: grid; gap: 2px; }
+  .eyebrow { font: 600 11px/1 var(--font-data); letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  h1 { margin: 0; font: 800 clamp(34px, 6.4vw, 64px)/0.92 var(--font-display); letter-spacing: 0.02em; text-transform: uppercase; text-wrap: balance; }
+  .sub { font-size: 14px; color: var(--muted); max-width: 46ch; }
+  .sub b { color: var(--ink); font-weight: 500; }
+  #dims { font: 500 12px/1 var(--font-data); color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 6px; }
+
+  .dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); width: min(940px, calc(100% - 32px));
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .group { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .label { font: 600 10.5px/1 var(--font-data); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+  .seg button { appearance: none; border: 0; background: transparent; color: var(--ink); font: 500 13px/1 var(--font-ui); padding: 9px 12px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--trim); color: #fff; }
+  .seg button:hover:not([aria-pressed="true"]) { background: var(--trim-soft); }
+  .toggle { appearance: none; border: 1px solid var(--line); background: transparent; color: var(--ink); font: 500 13px/1 var(--font-ui); padding: 9px 12px; border-radius: 9px; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; }
+  .toggle::before { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--muted); }
+  .toggle[aria-pressed="true"]::before { background: var(--trim); border-color: var(--trim); box-shadow: 0 0 8px var(--trim); }
+  button:focus-visible { outline: 2px solid var(--trim); outline-offset: 2px; }
+  .spacer { flex: 1 1 auto; }
+
+  .credit { position: fixed; right: 20px; top: calc(env(safe-area-inset-top, 0px) + 20px); max-width: 300px; text-align: right; font-size: 11px; color: var(--muted); }
+  .credit a { color: var(--ink); }
+
+  #loader { position: fixed; inset: 0; display: grid; place-items: center; background: var(--night); z-index: 5; transition: opacity 0.6s; }
+  #loader .box { width: min(360px, calc(100% - 48px)); display: grid; gap: 10px; }
+  #loader .bar { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+  #loader .bar i { display: block; height: 100%; width: 0; background: var(--trim); transition: width 0.2s; }
+  #loader .pct { font: 500 12px/1 var(--font-data); color: var(--muted); font-variant-numeric: tabular-nums; display: flex; justify-content: space-between; }
+  #loader.done { opacity: 0; pointer-events: none; }
+  #err { color: #ff9a8a; font-size: 13px; }
+
+  @media (max-width: 640px) {
+    .credit { position: fixed; top: auto; right: 16px; left: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 168px); text-align: left; max-width: none; }
+    .title { left: 16px; right: 16px; }
+    .sub { font-size: 13px; }
+    .dock { gap: 8px 10px; }
+    .label { display: none; }
+    .seg button, .toggle { padding: 8px 10px; font-size: 12.5px; }
+  }
+  @media (prefers-reduced-motion: reduce) { #loader { transition: none; } }
+</style>
+
+<canvas id="stage" tabindex="0" aria-label="3D-Ansicht der Statue, mit Maus oder Finger drehen"></canvas>
+
+<header class="title">
+  <span class="eyebrow">Sammlerstatue · Maßstab 1:15</span>
+  <h1>Indominus Rex</h1>
+  <span class="sub">Dein JWE2-Modell auf einem Diorama mit erlegtem <b>Ankylosaurus</b>, Moos, Farnen und Fossil-Relief im Sockel.</span>
+  <span id="dims">Maße werden berechnet …</span>
+</header>
+
+<p class="credit">Modell „Indominus Rex – Idle“ von <a href="https://sketchfab.com/3d-models/indominus-rex-idle-d50bb47c26f445bfbfe518ff79fcb13a" target="_blank" rel="noopener">Nobilis the Palaeovespa 2</a>, CC BY 4.0. Pose, Ankylosaurus, Diorama und Sockel prozedural erzeugt.</p>
+
+<nav class="dock" aria-label="Ansicht">
+  <div class="group">
+    <span class="label">Pose</span>
+    <div class="seg" id="poses" role="group" aria-label="Pose"></div>
+  </div>
+  <div class="group">
+    <span class="label">Licht</span>
+    <div class="seg" id="lights" role="group" aria-label="Licht">
+      <button type="button" data-light="blau" aria-pressed="true">Studio</button>
+      <button type="button" data-light="galerie" aria-pressed="false">Galerie</button>
+      <button type="button" data-light="nacht" aria-pressed="false">Nacht</button>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <div class="group">
+    <button type="button" class="toggle" id="spin" aria-pressed="false">Drehteller</button>
+    <button type="button" class="toggle" id="measure" aria-pressed="false">Maße</button>
+    <div class="seg" id="views" role="group" aria-label="Kamera">
+      <button type="button" data-view="front" aria-pressed="true">Front</button>
+      <button type="button" data-view="side" aria-pressed="false">Seite</button>
+      <button type="button" data-view="head" aria-pressed="false">Kopf</button>
+    </div>
+  </div>
+</nav>
+
+<div id="loader" role="status" aria-live="polite">
+  <div class="box">
+    <span class="eyebrow">Statue wird aufgebaut</span>
+    <div class="bar"><i id="barfill"></i></div>
+    <div class="pct"><span id="pct">0 %</span><span>ca. 18 MB</span></div>
+    <span id="err" hidden></span>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+  import { start } from './js/statue.js';
+  const $ = (id) => document.getElementById(id);
+  const press = (wrap, btn) => wrap.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+  try {
+    await document.fonts.load('800 64px "Big Shoulders Display"').catch(() => {});
+    await document.fonts.load('600 40px "IBM Plex Mono"').catch(() => {});
+    const app = await start({ onProgress: (p) => { $('barfill').style.width = (p * 100).toFixed(0) + '%'; $('pct').textContent = (p * 100).toFixed(0) + ' %'; } });
+    window.statueApp = app;
+    const poses = $('poses');
+    app.poseNames.forEach(([key, label], i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = label; b.setAttribute('aria-pressed', String(i === 0));
+      b.addEventListener('click', () => { press(poses, b); app.setPose(key); });
+      poses.appendChild(b);
+    });
+    $('lights').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; press($('lights'), b); app.setLight(b.dataset.light); });
+    $('views').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; press($('views'), b); app.goView(b.dataset.view); });
+    $('spin').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', String(on)); app.setTurntable(on); });
+    $('measure').addEventListener('click', (e) => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', String(on)); app.setRulers(on); });
+    $('loader').classList.add('done');
+    window.__ready = true;
+  } catch (err) {
+    console.error(err);
+    $('err').hidden = false;
+    $('err').textContent = 'Die Statue konnte nicht geladen werden: ' + (err && err.message ? err.message : err) + '. Lade die Seite neu oder prüfe, ob WebGL im Browser aktiviert ist.';
+    window.__ready = true;
+  }
+</script>
